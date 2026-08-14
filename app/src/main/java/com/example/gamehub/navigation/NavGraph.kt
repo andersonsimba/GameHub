@@ -27,6 +27,7 @@ import com.example.gamehub.presentation.PantallaCatalogo
 import com.example.gamehub.presentation.PantallaDetalle
 import com.example.gamehub.presentation.PantallaFavoritos
 import com.example.gamehub.presentation.PantallaInicio
+import com.example.gamehub.presentation.PantallaPerfil
 import com.example.gamehub.presentation.VideojuegoViewModel
 
 @Composable
@@ -145,6 +146,9 @@ fun NavGraph() {
             }
             composable("ajustes") {
                 PantallaAjustes(viewModel = viewModel)
+            }
+            composable("perfil") {
+                PantallaPerfil()
             }
         }
     }

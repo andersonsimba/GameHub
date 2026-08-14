@@ -5,6 +5,11 @@
     <!-- Permite que la aplicación se conecte a Internet para consumir la API -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Permiso para acceder al hardware de la cámara -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Indica que la app utiliza la cámara, pero no bloquea su instalación si el equipo no tiene una de alta gama -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
