@@ -21,6 +21,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gamehub.data.local.AppDatabase
 import com.example.gamehub.data.repository.VideojuegoRepository
+import com.example.gamehub.presentation.PantallaAjustes
 import com.example.gamehub.presentation.PantallaBusqueda
 import com.example.gamehub.presentation.PantallaCatalogo
 import com.example.gamehub.presentation.PantallaDetalle
@@ -42,7 +43,6 @@ fun NavGraph() {
 
     // Instanciación del ViewModel compartida entre pantallas mediante ViewModel Factory
     val viewModel: VideojuegoViewModel = viewModel(
-        factory = VideojuegoViewModel.Factory(repository)
     )
 
     // Obtiene la ruta activa actualmente para destacar el ícono correspondiente en la barra inferior
@@ -142,6 +142,9 @@ fun NavGraph() {
                     platform = backStackEntry.arguments?.getString("platform") ?: "",
                     imagen = backStackEntry.arguments?.getString("imagen") ?: ""
                 )
+            }
+            composable("ajustes") {
+                PantallaAjustes(viewModel = viewModel)
             }
         }
     }
