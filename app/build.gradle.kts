@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.gamehub"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.gamehub"
@@ -72,6 +72,8 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.1")
     implementation("androidx.camera:camera-view:1.4.1")
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    // DataStore Preferences
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // Pruebas
     testImplementation(libs.junit)
@@ -81,4 +83,5 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
 }
