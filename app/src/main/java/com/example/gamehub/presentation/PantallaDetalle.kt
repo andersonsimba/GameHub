@@ -39,7 +39,7 @@ fun PantallaDetalle(
     viewModel: VideojuegoViewModel? = null
 ) {
     // Observa si el juego actual ya existe en la base de datos local Room
-    val favoritos by viewModel?.listaFavoritos?.collectAsState() ?: androidx.compose.runtime.mutableStateOf(emptyList())
+    val favoritos = viewModel?.listaFavoritos?.collectAsState(initial = emptyList())?.value ?: emptyList()
     val esFavorito = favoritos.any { it.id == id }
 
     Scaffold(
