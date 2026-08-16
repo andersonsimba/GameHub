@@ -30,22 +30,22 @@ import com.example.gamehub.presentation.VideojuegoViewModel
 
 @Composable
 fun NavGraph() {
-    // Controller principal para gestionar la navegación entre pantallas de Compose
+    // Controller principal para gestionar la navegación entre pantallas
     val navController = rememberNavController()
 
-    // Contexto local necesario para inicializar Room Database
+    // Contexto necesario para inicializar Room
     val context = LocalContext.current
 
-    // Inicialización del Repositorio unificando el DAO de Room con Retrofit
+    // Repository que conecta Room con Retrofit
     val database = AppDatabase.getDatabase(context)
     val repository = VideojuegoRepository(database.videojuegoDao())
 
-    // Instanciación del ViewModel compartida entre pantallas mediante ViewModel Factory
+    // ViewModel compartido entre las pantallas
     val viewModel: VideojuegoViewModel = viewModel(
         factory = VideojuegoViewModel.Factory(repository)
     )
 
-    // Obtiene la ruta activa actualmente para destacar el ícono correspondiente en la barra inferior
+    // Obtiene la ruta activa para destacar el ícono correspondiente
     val currentRoute = navController
         .currentBackStackEntryAsState()
         .value
@@ -54,36 +54,55 @@ fun NavGraph() {
 
     Scaffold(
         bottomBar = {
-            // BARRA DE NAVEGACIÓN INFERIOR (BOTTOM NAVIGATION BAR)
             NavigationBar {
+
                 NavigationBarItem(
                     selected = currentRoute == "inicio",
                     onClick = { navController.navigate("inicio") },
-                    icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "Inicio") }
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = "Inicio"
+                        )
+                    }
                 )
 
                 NavigationBarItem(
                     selected = currentRoute == "catalogo",
                     onClick = { navController.navigate("catalogo") },
-                    icon = { Icon(imageVector = Icons.Default.VideogameAsset, contentDescription = "Catálogo") }
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.VideogameAsset,
+                            contentDescription = "Catálogo"
+                        )
+                    }
                 )
 
                 NavigationBarItem(
                     selected = currentRoute == "busqueda",
                     onClick = { navController.navigate("busqueda") },
-                    icon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Búsqueda") }
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Búsqueda"
+                        )
+                    }
                 )
 
                 NavigationBarItem(
                     selected = currentRoute == "favoritos",
                     onClick = { navController.navigate("favoritos") },
-                    icon = { Icon(imageVector = Icons.Default.Favorite, contentDescription = "Favoritos") }
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Favoritos"
+                        )
+                    }
                 )
             }
         }
     ) { paddingValues ->
 
-        // MAPA DE NAVEGACIÓN DE LA APLICACIÓN
         NavHost(
             navController = navController,
             startDestination = "inicio",
@@ -99,11 +118,12 @@ fun NavGraph() {
                 )
             }
 
-            // 2. PANTALLA CATÁLOGO (Consume el ViewModel)
+            // 2. PANTALLA CATÁLOGO
             composable("catalogo") {
                 PantallaCatalogo(
                     viewModel = viewModel,
                     onVideojuegoClick = { videojuego ->
+
                         val ruta = "detalle/" +
                                 "${videojuego.id}/" +
                                 "${Uri.encode(videojuego.nombre)}/" +
@@ -121,26 +141,51 @@ fun NavGraph() {
 
             // 3. PANTALLA BÚSQUEDA
             composable("busqueda") {
-                PantallaBusqueda(viewModel = viewModel)
+                PantallaBusqueda(
+                    viewModel = viewModel,
+                    onVideojuegoClick = { videojuego ->
+
+                        val ruta = "detalle/" +
+                                "${videojuego.id}/" +
+                                "${Uri.encode(videojuego.nombre)}/" +
+                                "${Uri.encode(videojuego.descripcion ?: "")}/" +
+                                "${Uri.encode(videojuego.genero ?: "")}/" +
+                                "${Uri.encode(videojuego.developer ?: "")}/" +
+                                "${Uri.encode(videojuego.fechaLanzamiento ?: "")}/" +
+                                "${Uri.encode(videojuego.platform ?: "")}/" +
+                                "${Uri.encode(videojuego.imagen ?: "")}"
+
+                        navController.navigate(ruta)
+                    }
+                )
             }
 
-            // 4. PANTALLA FAVORITOS (Muestra los datos almacenados en Room)
+            // 4. PANTALLA FAVORITOS
             composable("favoritos") {
-                PantallaFavoritos(viewModel = viewModel)
+                PantallaFavoritos(
+                    viewModel = viewModel
+                )
             }
 
-            // 5. PANTALLA DETALLE (Recibe argumentos por URL)
+            // 5. PANTALLA DETALLE
             composable(
                 route = "detalle/{id}/{nombre}/{descripcion}/{genero}/{developer}/{fechaLanzamiento}/{platform}/{imagen}"
             ) { backStackEntry ->
+
+                val id = backStackEntry.arguments
+                    ?.getString("id")
+                    ?.toIntOrNull() ?: 0
+
                 PantallaDetalle(
+                    id = id,
                     nombre = backStackEntry.arguments?.getString("nombre") ?: "",
                     descripcion = backStackEntry.arguments?.getString("descripcion") ?: "",
                     genero = backStackEntry.arguments?.getString("genero") ?: "",
                     developer = backStackEntry.arguments?.getString("developer") ?: "",
                     fechaLanzamiento = backStackEntry.arguments?.getString("fechaLanzamiento") ?: "",
                     platform = backStackEntry.arguments?.getString("platform") ?: "",
-                    imagen = backStackEntry.arguments?.getString("imagen") ?: ""
+                    imagen = backStackEntry.arguments?.getString("imagen") ?: "",
+                    viewModel = viewModel
                 )
             }
         }
