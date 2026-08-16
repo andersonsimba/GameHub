@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VideogameAsset
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -13,37 +15,25 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.gamehub.data.local.AppDatabase
-import com.example.gamehub.data.repository.VideojuegoRepository
+import com.example.gamehub.presentation.PantallaAjustes
 import com.example.gamehub.presentation.PantallaBusqueda
 import com.example.gamehub.presentation.PantallaCatalogo
 import com.example.gamehub.presentation.PantallaDetalle
 import com.example.gamehub.presentation.PantallaFavoritos
 import com.example.gamehub.presentation.PantallaInicio
+import com.example.gamehub.presentation.PantallaPerfil
 import com.example.gamehub.presentation.VideojuegoViewModel
 
 @Composable
-fun NavGraph() {
+fun NavGraph(
+    viewModel: VideojuegoViewModel
+) {
     // Controller principal para gestionar la navegación entre pantallas
     val navController = rememberNavController()
-
-    // Contexto necesario para inicializar Room
-    val context = LocalContext.current
-
-    // Repository que conecta Room con Retrofit
-    val database = AppDatabase.getDatabase(context)
-    val repository = VideojuegoRepository(database.videojuegoDao())
-
-    // ViewModel compartido entre las pantallas
-    val viewModel: VideojuegoViewModel = viewModel(
-        factory = VideojuegoViewModel.Factory(repository)
-    )
 
     // Obtiene la ruta activa para destacar el ícono correspondiente
     val currentRoute = navController
@@ -99,6 +89,30 @@ fun NavGraph() {
                         )
                     }
                 )
+
+                // Ícono agregado para acceder a Perfil
+                NavigationBarItem(
+                    selected = currentRoute == "perfil",
+                    onClick = { navController.navigate("perfil") },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Perfil"
+                        )
+                    }
+                )
+
+                // Ícono agregado para acceder a Ajustes / Configuración
+                NavigationBarItem(
+                    selected = currentRoute == "ajustes",
+                    onClick = { navController.navigate("ajustes") },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Ajustes"
+                        )
+                    }
+                )
             }
         }
     ) { paddingValues ->
@@ -123,7 +137,6 @@ fun NavGraph() {
                 PantallaCatalogo(
                     viewModel = viewModel,
                     onVideojuegoClick = { videojuego ->
-
                         val ruta = "detalle/" +
                                 "${videojuego.id}/" +
                                 "${Uri.encode(videojuego.nombre)}/" +
@@ -144,7 +157,6 @@ fun NavGraph() {
                 PantallaBusqueda(
                     viewModel = viewModel,
                     onVideojuegoClick = { videojuego ->
-
                         val ruta = "detalle/" +
                                 "${videojuego.id}/" +
                                 "${Uri.encode(videojuego.nombre)}/" +
@@ -187,6 +199,16 @@ fun NavGraph() {
                     imagen = backStackEntry.arguments?.getString("imagen") ?: "",
                     viewModel = viewModel
                 )
+            }
+
+            // 6. PANTALLA PERFIL
+            composable("perfil") {
+                PantallaPerfil()
+            }
+
+            // 7. PANTALLA AJUSTES (Añadida la ruta a PantallaAjustes)
+            composable("ajustes") {
+                PantallaAjustes(viewModel = viewModel)
             }
         }
     }

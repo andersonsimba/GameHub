@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.gamehub.data.local.PreferenciasUsuario
 import com.example.gamehub.data.local.VideojuegoEntity
 import com.example.gamehub.data.network.VideojuegoApi
 import com.example.gamehub.data.repository.VideojuegoRepository
@@ -14,8 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// DEFINICIÓN DE ESTADOS DE LA UI:
-// Representa todos los posibles estados en los que puede estar la pantalla de catálogo/búsqueda.
+// Representa los posibles estados de la interfaz al cargar videojuegos.
 sealed interface EstadoUiVideojuegos {
     object Cargando : EstadoUiVideojuegos
     data class Exito(val juegos: List<VideojuegoApi>) : EstadoUiVideojuegos
@@ -23,24 +23,30 @@ sealed interface EstadoUiVideojuegos {
 }
 
 class VideojuegoViewModel(
-    private val repository: VideojuegoRepository
+    private val repository: VideojuegoRepository,
+    private val preferenciasUsuario: PreferenciasUsuario
 ) : ViewModel() {
 
-    // ESTADO DE LA UI (Consumido por Compose para renderizar Pantalla Carga / Datos / Error)
+    // Estado de la UI utilizado por catálogo y búsqueda.
     var estadoUi: EstadoUiVideojuegos by mutableStateOf(EstadoUiVideojuegos.Cargando)
         private set
 
-    // Estado y función para gestionar el cambio de modo oscuro en la interfaz de ajustes de la aplicación.
-    private val _esModoOscuro = mutableStateOf(false)
-    val esModoOscuro: Boolean by _esModoOscuro
+    // Lee el modo oscuro directamente desde DataStore y conserva su valor.
+    val esModoOscuro: StateFlow<Boolean> = preferenciasUsuario.modoOscuroFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
 
     fun cambiarModoOscuro(valor: Boolean) {
-        _esModoOscuro.value = valor
+        viewModelScope.launch {
+            // Guarda la preferencia para conservarla al cerrar la aplicación.
+            preferenciasUsuario.guardarModoOscuro(valor)
+        }
     }
 
-    // FLUJO DE FAVORITOS (ROOM):
-    // Convierte el Flow de Room a StateFlow para que la UI de Compose reaccione automáticamente
-    // en tiempo real cuando un juego es agregado o eliminado de la BD local.
+    // Flujo de favoritos almacenados en Room.
     val listaFavoritos: StateFlow<List<VideojuegoEntity>> = repository.favoritos
         .stateIn(
             scope = viewModelScope,
@@ -49,31 +55,32 @@ class VideojuegoViewModel(
         )
 
     init {
-        // Al instanciar el ViewModel, cargamos inmediatamente el catálogo de la API
         cargarVideojuegos()
     }
 
-    // 1. PETICIÓN A LA API (RETROFIT + CORRUTINAS)
+    // Solicita los videojuegos mediante Retrofit a través del Repository.
     fun cargarVideojuegos() {
         viewModelScope.launch {
             estadoUi = EstadoUiVideojuegos.Cargando
+
             try {
-                // Obtención de datos remotos mediante el Repositorio
                 val respuestaApi = repository.obtenerVideojuegos()
                 estadoUi = EstadoUiVideojuegos.Exito(respuestaApi)
             } catch (e: Exception) {
-                // Captura de errores de red o deserialización
                 estadoUi = EstadoUiVideojuegos.Error(
-                    e.localizedMessage ?: "Ocurrió un error inesperado al conectar con el servidor"
+                    e.localizedMessage
+                        ?: "Ocurrió un error inesperado al conectar con el servidor"
                 )
             }
         }
     }
 
-    // 2. GESTIÓN DE FAVORITOS LOCALES (ROOM)
-    fun toggleFavorito(juegoApi: VideojuegoApi, esFavoritoActual: Boolean) {
+    // Agrega o elimina un videojuego de los favoritos almacenados en Room.
+    fun toggleFavorito(
+        juegoApi: VideojuegoApi,
+        esFavoritoActual: Boolean
+    ) {
         viewModelScope.launch {
-            // Conversión del DTO de la API a Entidad de Room
             val entidad = VideojuegoEntity(
                 id = juegoApi.id,
                 nombre = juegoApi.nombre,
@@ -90,13 +97,21 @@ class VideojuegoViewModel(
         }
     }
 
-    // FACTORY PARA CREAR INSTANCIAS DEL VIEWMODEL PASANDO EL REPOSITORIO COMO PARÁMETRO
-    class Factory(private val repository: VideojuegoRepository) : ViewModelProvider.Factory {
+    // Factory para crear el ViewModel con Repository y DataStore.
+    class Factory(
+        private val repository: VideojuegoRepository,
+        private val preferenciasUsuario: PreferenciasUsuario
+    ) : ViewModelProvider.Factory {
+
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(VideojuegoViewModel::class.java)) {
-                return VideojuegoViewModel(repository) as T
+                return VideojuegoViewModel(
+                    repository,
+                    preferenciasUsuario
+                ) as T
             }
+
             throw IllegalArgumentException("Clase ViewModel desconocida")
         }
     }
