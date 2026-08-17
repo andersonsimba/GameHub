@@ -15,10 +15,12 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.gamehub.presentation.PantallaAjustes
 import com.example.gamehub.presentation.PantallaBusqueda
 import com.example.gamehub.presentation.PantallaCatalogo
@@ -35,7 +37,7 @@ fun NavGraph(
     // Controller principal para gestionar la navegación entre pantallas
     val navController = rememberNavController()
 
-    // Obtiene la ruta activa para destacar el ícono correspondiente
+    // Obtiene la ruta activa para destacar el ícono correspondiente en la barra
     val currentRoute = navController
         .currentBackStackEntryAsState()
         .value
@@ -90,7 +92,6 @@ fun NavGraph(
                     }
                 )
 
-                // Ícono agregado para acceder a Perfil
                 NavigationBarItem(
                     selected = currentRoute == "perfil",
                     onClick = { navController.navigate("perfil") },
@@ -102,7 +103,6 @@ fun NavGraph(
                     }
                 )
 
-                // Ícono agregado para acceder a Ajustes / Configuración
                 NavigationBarItem(
                     selected = currentRoute == "ajustes",
                     onClick = { navController.navigate("ajustes") },
@@ -126,6 +126,7 @@ fun NavGraph(
             // 1. PANTALLA INICIO
             composable("inicio") {
                 PantallaInicio(
+                    viewModel = viewModel,
                     onIrCatalogo = {
                         navController.navigate("catalogo")
                     }
@@ -179,34 +180,49 @@ fun NavGraph(
                 )
             }
 
-            // 5. PANTALLA DETALLE
+            // 5. PANTALLA DETALLE CON EXTRACCIÓN SEGURA DE PARÁMETROS
             composable(
-                route = "detalle/{id}/{nombre}/{descripcion}/{genero}/{developer}/{fechaLanzamiento}/{platform}/{imagen}"
+                route = "detalle/{id}/{nombre}/{descripcion}/{genero}/{developer}/{fechaLanzamiento}/{platform}/{imagen}",
+                arguments = listOf(
+                    navArgument("id") { type = NavType.IntType },
+                    navArgument("nombre") { type = NavType.StringType },
+                    navArgument("descripcion") { type = NavType.StringType },
+                    navArgument("genero") { type = NavType.StringType },
+                    navArgument("developer") { type = NavType.StringType },
+                    navArgument("fechaLanzamiento") { type = NavType.StringType },
+                    navArgument("platform") { type = NavType.StringType },
+                    navArgument("imagen") { type = NavType.StringType }
+                )
             ) { backStackEntry ->
 
-                val id = backStackEntry.arguments
-                    ?.getString("id")
-                    ?.toIntOrNull() ?: 0
+                val id = backStackEntry.arguments?.getInt("id") ?: 0
+                val nombre = Uri.decode(backStackEntry.arguments?.getString("nombre") ?: "")
+                val descripcion = Uri.decode(backStackEntry.arguments?.getString("descripcion") ?: "")
+                val genero = Uri.decode(backStackEntry.arguments?.getString("genero") ?: "")
+                val developer = Uri.decode(backStackEntry.arguments?.getString("developer") ?: "")
+                val fechaLanzamiento = Uri.decode(backStackEntry.arguments?.getString("fechaLanzamiento") ?: "")
+                val platform = Uri.decode(backStackEntry.arguments?.getString("platform") ?: "")
+                val imagen = Uri.decode(backStackEntry.arguments?.getString("imagen") ?: "")
 
                 PantallaDetalle(
                     id = id,
-                    nombre = backStackEntry.arguments?.getString("nombre") ?: "",
-                    descripcion = backStackEntry.arguments?.getString("descripcion") ?: "",
-                    genero = backStackEntry.arguments?.getString("genero") ?: "",
-                    developer = backStackEntry.arguments?.getString("developer") ?: "",
-                    fechaLanzamiento = backStackEntry.arguments?.getString("fechaLanzamiento") ?: "",
-                    platform = backStackEntry.arguments?.getString("platform") ?: "",
-                    imagen = backStackEntry.arguments?.getString("imagen") ?: "",
+                    nombre = nombre,
+                    descripcion = descripcion,
+                    genero = genero,
+                    developer = developer,
+                    fechaLanzamiento = fechaLanzamiento,
+                    platform = platform,
+                    imagen = imagen,
                     viewModel = viewModel
                 )
             }
 
             // 6. PANTALLA PERFIL
             composable("perfil") {
-                PantallaPerfil()
+                PantallaPerfil(viewModel = viewModel)
             }
 
-            // 7. PANTALLA AJUSTES (Añadida la ruta a PantallaAjustes)
+            // 7. PANTALLA AJUSTES
             composable("ajustes") {
                 PantallaAjustes(viewModel = viewModel)
             }

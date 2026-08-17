@@ -17,6 +17,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -32,10 +38,22 @@ fun PantallaCatalogo(
     // Evento para navegar al detalle al pulsar sobre una tarjeta
     onVideojuegoClick: (VideojuegoApi) -> Unit
 ) {
-    // EVALUACIÓN DEL ESTADO DE LA UI (CARGANDO / ÉXITO / ERROR)
+    // Escucha el nombre almacenado en DataStore mediante StateFlow
+    val nombreUsuario by viewModel.nombreUsuario.collectAsState()
+
+    // Cantidad de videojuegos visibles inicialmente y después de cada ampliación
+    var cantidadVisible by remember { mutableIntStateOf(10) }
+
+    // Reinicia la cantidad visible cuando se obtiene una nueva lista desde la API
+    LaunchedEffect(viewModel.estadoUi) {
+        if (viewModel.estadoUi is EstadoUiVideojuegos.Exito) {
+            cantidadVisible = 10
+        }
+    }
+
     when (val estado = viewModel.estadoUi) {
 
-        // 1. ESTADO DE CARGA: Muestra un indicador circular centrado en pantalla
+        // ESTADO DE CARGA
         is EstadoUiVideojuegos.Cargando -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -45,7 +63,7 @@ fun PantallaCatalogo(
             }
         }
 
-        // 2. ESTADO DE ERROR: Informa al usuario sobre fallos de conexión y permite reintentar
+        // ESTADO DE ERROR
         is EstadoUiVideojuegos.Error -> {
             Column(
                 modifier = Modifier
@@ -59,11 +77,13 @@ fun PantallaCatalogo(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.error
                 )
+
                 Text(
                     text = estado.mensaje,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
+
                 Button(
                     onClick = { viewModel.cargarVideojuegos() }
                 ) {
@@ -72,25 +92,44 @@ fun PantallaCatalogo(
             }
         }
 
-        // 3. ESTADO DE ÉXITO: Renderiza la lista optimizada de videojuegos
+        // ESTADO DE ÉXITO
         is EstadoUiVideojuegos.Exito -> {
+
+            val juegosVisibles = estado.juegos.take(cantidadVisible)
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // LazyColumn recicla los componentes gráficos para optimizar memoria en listas largas
-                items(estado.juegos) { videojuego ->
+
+                // Muestra un saludo personalizado si el usuario ya registró su nombre
+                if (nombreUsuario.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "¡Hola Bienvenido, $nombreUsuario! 👋",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                }
+
+                // Muestra únicamente la cantidad de videojuegos actualmente habilitada
+                items(juegosVisibles) { videojuego ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onVideojuegoClick(videojuego) }
+                            .clickable {
+                                onVideojuegoClick(videojuego)
+                            }
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            // Carga asíncrona de imágenes remotas mediante Coil
+
+                            // Carga asíncrona de imágenes mediante Coil
                             AsyncImage(
                                 model = videojuego.imagen,
                                 contentDescription = "Imagen de ${videojuego.nombre}",
@@ -113,11 +152,28 @@ fun PantallaCatalogo(
                                     text = videojuego.genero ?: "Sin género",
                                     style = MaterialTheme.typography.bodySmall
                                 )
+
                                 Text(
                                     text = " • ${videojuego.developer ?: "Desarrollador desconocido"}",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
+                        }
+                    }
+                }
+
+                // Botón para cargar 10 videojuegos adicionales
+                if (cantidadVisible < estado.juegos.size) {
+                    item {
+                        Button(
+                            onClick = {
+                                cantidadVisible += 10
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text("Mostrar más")
                         }
                     }
                 }

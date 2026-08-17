@@ -41,8 +41,37 @@ class VideojuegoViewModel(
 
     fun cambiarModoOscuro(valor: Boolean) {
         viewModelScope.launch {
-            // Guarda la preferencia para conservarla al cerrar la aplicación.
             preferenciasUsuario.guardarModoOscuro(valor)
+        }
+    }
+
+    // Lee el nombre del usuario desde DataStore mediante un flujo observable.
+    val nombreUsuario: StateFlow<String> = preferenciasUsuario.nombreUsuarioFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
+
+    // Guarda el nombre introducido en el registro dentro de DataStore.
+    fun guardarNombreUsuario(nombre: String) {
+        viewModelScope.launch {
+            preferenciasUsuario.guardarNombreUsuario(nombre)
+        }
+    }
+
+    // Lee el URI de la foto de perfil persistente almacenado en DataStore.
+    val fotoPerfilUri: StateFlow<String> = preferenciasUsuario.fotoPerfilUriFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
+
+    // Guarda la ruta/URI de la foto de perfil en DataStore.
+    fun guardarFotoPerfilUri(uriString: String) {
+        viewModelScope.launch {
+            preferenciasUsuario.guardarFotoPerfilUri(uriString)
         }
     }
 
