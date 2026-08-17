@@ -61,19 +61,16 @@ dependencies {
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
-    // En lugar de ksp(...)
     add("ksp", "androidx.room:room-compiler:$roomVersion")
 
-    // 2. DATASTORE (Preferencias: Modo Oscuro, etc.)
+    // 2. DATASTORE (Preferencias: Modo Oscuro, Usuario, Foto)
     implementation("androidx.datastore:datastore-preferences:1.1.2")
 
-    // 3. CAMARA Y GPS (Hardware y Permisos)
+    // 3. CÁMARA Y GPS (Hardware y Permisos)
     implementation("androidx.camera:camera-camera2:1.4.1")
     implementation("androidx.camera:camera-lifecycle:1.4.1")
     implementation("androidx.camera:camera-view:1.4.1")
     implementation("com.google.android.gms:play-services-location:21.3.0")
-    // DataStore Preferences
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // Pruebas
     testImplementation(libs.junit)
@@ -83,5 +80,4 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-
 }
