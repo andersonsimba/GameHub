@@ -173,10 +173,23 @@ fun NavGraph(
                 )
             }
 
-            // 4. PANTALLA FAVORITOS
+            // 4. PANTALLA FAVORITOS CON NAVEGACIÓN A DETALLE
             composable("favoritos") {
                 PantallaFavoritos(
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    onVideojuegoClick = { videojuego ->
+                        val ruta = "detalle/" +
+                                "${videojuego.id}/" +
+                                "${Uri.encode(videojuego.nombre)}/" +
+                                "${Uri.encode(videojuego.descripcion ?: "")}/" +
+                                "${Uri.encode(videojuego.genero ?: "")}/" +
+                                "${Uri.encode(videojuego.developer ?: "")}/" +
+                                "${Uri.encode(videojuego.fechaLanzamiento ?: "")}/" +
+                                "${Uri.encode(videojuego.platform ?: "")}/" +
+                                "${Uri.encode(videojuego.imagen ?: "")}"
+
+                        navController.navigate(ruta)
+                    }
                 )
             }
 

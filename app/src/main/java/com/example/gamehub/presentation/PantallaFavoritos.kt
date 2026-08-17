@@ -1,5 +1,6 @@
 package com.example.gamehub.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,11 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.gamehub.data.network.VideojuegoApi
 
 @Composable
 fun PantallaFavoritos(
     // Inyección del ViewModel para acceder al flujo de datos locales (Room)
-    viewModel: VideojuegoViewModel
+    viewModel: VideojuegoViewModel,
+    // Callback para navegar a la PantallaDetalle cuando el usuario pulsa un juego
+    onVideojuegoClick: (VideojuegoApi) -> Unit = {}
 ) {
     // OBSERVACIÓN EN TIEMPO REAL: Convierte el StateFlow de Room en un estado legible por Jetpack Compose
     val favoritos by viewModel.listaFavoritos.collectAsState()
@@ -54,8 +58,21 @@ fun PantallaFavoritos(
         ) {
             // Renderiza la lista de elementos persistidos en la BD de Room (VideojuegoEntity)
             items(favoritos) { juego ->
+                val juegoApi = VideojuegoApi(
+                    id = juego.id,
+                    nombre = juego.nombre,
+                    descripcion = juego.descripcion,
+                    genero = juego.genero,
+                    developer = null,
+                    fechaLanzamiento = null,
+                    platform = null,
+                    imagen = juego.imagen
+                )
+
                 Card(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onVideojuegoClick(juegoApi) }
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp)
@@ -91,17 +108,6 @@ fun PantallaFavoritos(
                             // Botón para eliminar directamente de la BD local (Room)
                             IconButton(
                                 onClick = {
-                                    // Creamos un objeto API dummy o llamamos a eliminar en Room mediante ViewModel
-                                    val juegoApi = com.example.gamehub.data.network.VideojuegoApi(
-                                        id = juego.id,
-                                        nombre = juego.nombre,
-                                        descripcion = juego.descripcion,
-                                        genero = juego.genero,
-                                        developer = null,
-                                        fechaLanzamiento = null,
-                                        platform = null,
-                                        imagen = juego.imagen
-                                    )
                                     viewModel.toggleFavorito(juegoApi, esFavoritoActual = true)
                                 }
                             ) {

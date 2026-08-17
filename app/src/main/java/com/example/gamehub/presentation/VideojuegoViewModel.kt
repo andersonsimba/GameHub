@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.gamehub.data.local.PreferenciasUsuario
+import com.example.gamehub.data.local.ResenaEntity
 import com.example.gamehub.data.local.VideojuegoEntity
 import com.example.gamehub.data.network.VideojuegoApi
 import com.example.gamehub.data.repository.VideojuegoRepository
@@ -113,9 +114,9 @@ class VideojuegoViewModel(
             val entidad = VideojuegoEntity(
                 id = juegoApi.id,
                 nombre = juegoApi.nombre,
-                descripcion = juegoApi.descripcion,
-                genero = juegoApi.genero,
-                imagen = juegoApi.imagen
+                descripcion = juegoApi.descripcion ?: "",
+                genero = juegoApi.genero ?: "Sin género",
+                imagen = juegoApi.imagen ?: ""
             )
 
             if (esFavoritoActual) {
@@ -123,6 +124,32 @@ class VideojuegoViewModel(
             } else {
                 repository.guardarFavorito(entidad)
             }
+        }
+    }
+
+    // Guarda o actualiza una reseña en Room a través del Repository.
+    fun guardarResena(idVideojuego: Int, nombreVideojuego: String, calificacion: Int, comentario: String) {
+        viewModelScope.launch {
+            val resena = ResenaEntity(
+                idVideojuego = idVideojuego,
+                nombreVideojuego = nombreVideojuego,
+                calificacion = calificacion,
+                comentario = comentario
+            )
+            repository.guardarResena(resena)
+        }
+    }
+
+    // Consulta la reseña almacenada localmente para un videojuego por su ID.
+    suspend fun obtenerResenaLocal(idVideojuego: Int): ResenaEntity? {
+        return repository.obtenerResena(idVideojuego)
+    }
+
+    // Elimina la reseña almacenada de un videojuego en Room.
+    // Elimina la reseña almacenada de un videojuego en Room recibiendo el ID.
+    fun eliminarResena(idVideojuego: Int) {
+        viewModelScope.launch {
+            repository.eliminarResena(idVideojuego)
         }
     }
 
