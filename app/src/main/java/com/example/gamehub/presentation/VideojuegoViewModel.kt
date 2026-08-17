@@ -106,17 +106,19 @@ class VideojuegoViewModel(
     }
 
     // Agrega o elimina un videojuego de los favoritos almacenados en Room.
-    fun toggleFavorito(
-        juegoApi: VideojuegoApi,
-        esFavoritoActual: Boolean
-    ) {
+
+    fun toggleFavorito(juego: VideojuegoApi, esFavoritoActual: Boolean) {
         viewModelScope.launch {
+            // Mapeo completo hacia la entidad de Room asegurando que no se pierdan metadatos
             val entidad = VideojuegoEntity(
-                id = juegoApi.id,
-                nombre = juegoApi.nombre,
-                descripcion = juegoApi.descripcion ?: "",
-                genero = juegoApi.genero ?: "Sin género",
-                imagen = juegoApi.imagen ?: ""
+                id = juego.id,
+                nombre = juego.nombre,
+                descripcion = juego.descripcion ?: "",
+                genero = juego.genero ?: "",
+                imagen = juego.imagen ?: "",
+                developer = juego.developer ?: "",
+                fechaLanzamiento = juego.fechaLanzamiento ?: "",
+                platform = juego.platform ?: ""
             )
 
             if (esFavoritoActual) {

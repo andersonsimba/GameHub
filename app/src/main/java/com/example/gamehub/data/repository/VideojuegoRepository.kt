@@ -9,17 +9,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
+/**
+ * REPOSITORIO DE VIDEOJUEGOS
+ * Actúa como la única fuente de verdad (Single Source of Truth) mediando
+ * entre la API remota (Retrofit) y la base de datos local (Room).
+ */
 class VideojuegoRepository(private val dao: VideojuegoDao) {
 
-    // Obtención de videojuegos desde la API remota (Retrofit)
+    // CONSULTA API: Obtención de la lista de videojuegos desde la API remota (FreeToGame)
     suspend fun obtenerVideojuegos(): List<VideojuegoApi> {
         return RetrofitClient.api.obtenerVideojuegos()
     }
 
-    // Variable 'favoritos' que tu ViewModel lee exactamente en: val listaFavoritos = repository.favoritos
+    // FLUJO CONTINUO: Inserción y observación reactiva de favoritos mediante Flow
     val favoritos: Flow<List<VideojuegoEntity>> = dao.obtenerTodosLosFavoritos()
 
-    // Operaciones de Favoritos en Room
+    // OPERACIONES DE FAVORITOS EN ROOM (Ejecutadas en hilo secundario mediante Dispatchers.IO)
     suspend fun guardarFavorito(juego: VideojuegoEntity) {
         withContext(Dispatchers.IO) {
             dao.guardarFavorito(juego)
@@ -32,7 +37,7 @@ class VideojuegoRepository(private val dao: VideojuegoDao) {
         }
     }
 
-    // Operaciones de Reseñas en Room requeridas por tu ViewModel
+    // OPERACIONES DE RESEÑAS EN ROOM
     suspend fun obtenerResena(idVideojuego: Int): ResenaEntity? {
         return withContext(Dispatchers.IO) {
             dao.obtenerResena(idVideojuego)
@@ -50,4 +55,31 @@ class VideojuegoRepository(private val dao: VideojuegoDao) {
             dao.eliminarResena(idVideojuego)
         }
     }
+}
+
+// MAPPING / MAPEADORES: Transforman los datos entre la API (red) y la Entidad (Room)
+fun VideojuegoApi.aEntity(): VideojuegoEntity {
+    return VideojuegoEntity(
+        id = id,
+        nombre = nombre,
+        descripcion = descripcion ?: "",
+        genero = genero ?: "",
+        imagen = imagen ?: "",
+        developer = developer ?: "",
+        fechaLanzamiento = fechaLanzamiento ?: "",
+        platform = platform ?: ""
+    )
+}
+
+fun VideojuegoEntity.aApi(): VideojuegoApi {
+    return VideojuegoApi(
+        id = id,
+        nombre = nombre,
+        descripcion = descripcion,
+        genero = genero,
+        imagen = imagen,
+        developer = developer,
+        fechaLanzamiento = fechaLanzamiento,
+        platform = platform
+    )
 }

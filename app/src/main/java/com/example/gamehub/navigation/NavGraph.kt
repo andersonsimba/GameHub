@@ -14,6 +14,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -30,12 +32,24 @@ import com.example.gamehub.presentation.PantallaInicio
 import com.example.gamehub.presentation.PantallaPerfil
 import com.example.gamehub.presentation.VideojuegoViewModel
 
+/**
+ * GRAFO DE NAVEGACIÓN PRINCIPAL
+ * Gestiona el flujo de pantallas, la barra inferior y la pantalla de inicio dinámica
+ * basada en la existencia del usuario registrado en DataStore.
+ */
 @Composable
 fun NavGraph(
     viewModel: VideojuegoViewModel
 ) {
     // Controller principal para gestionar la navegación entre pantallas
     val navController = rememberNavController()
+
+    // OBSERVACIÓN DE DATASTORE: Obtiene el nombre guardado para decidir el destino inicial
+    val nombreGuardado by viewModel.nombreUsuario.collectAsState()
+
+    // LÓGICA DE DESTINO INICIAL DINÁMICO:
+    // Si ya existe un nombre registrado, inicia directamente en el catálogo.
+    val destinoInicial = if (nombreGuardado.trim().isNotEmpty()) "catalogo" else "inicio"
 
     // Obtiene la ruta activa para destacar el ícono correspondiente en la barra
     val currentRoute = navController
@@ -119,7 +133,7 @@ fun NavGraph(
 
         NavHost(
             navController = navController,
-            startDestination = "inicio",
+            startDestination = destinoInicial, // Asignación dinámica según DataStore
             modifier = Modifier.padding(paddingValues)
         ) {
 
@@ -128,7 +142,10 @@ fun NavGraph(
                 PantallaInicio(
                     viewModel = viewModel,
                     onIrCatalogo = {
-                        navController.navigate("catalogo")
+                        // Navega al catálogo y elimina 'inicio' del historial para evitar volver atrás
+                        navController.navigate("catalogo") {
+                            popUpTo("inicio") { inclusive = true }
+                        }
                     }
                 )
             }

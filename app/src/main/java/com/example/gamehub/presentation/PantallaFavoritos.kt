@@ -26,14 +26,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.gamehub.data.network.VideojuegoApi
+import com.example.gamehub.data.repository.aApi
 
+/**
+ * PANTALLA DE FAVORITOS
+ * Muestra la lista de videojuegos almacenados localmente en la base de datos (Room).
+ * Permite eliminar un registro o navegar a la pantalla de detalle preservando toda la información.
+ */
 @Composable
 fun PantallaFavoritos(
     // Inyección del ViewModel para acceder al flujo de datos locales (Room)
     viewModel: VideojuegoViewModel,
     // Callback para navegar a la PantallaDetalle cuando el usuario pulsa un juego
-    onVideojuegoClick: (VideojuegoApi) -> Unit = {}
+    onVideojuegoClick: (com.example.gamehub.data.network.VideojuegoApi) -> Unit = {}
 ) {
     // OBSERVACIÓN EN TIEMPO REAL: Convierte el StateFlow de Room en un estado legible por Jetpack Compose
     val favoritos by viewModel.listaFavoritos.collectAsState()
@@ -57,17 +62,10 @@ fun PantallaFavoritos(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Renderiza la lista de elementos persistidos en la BD de Room (VideojuegoEntity)
-            items(favoritos) { juego ->
-                val juegoApi = VideojuegoApi(
-                    id = juego.id,
-                    nombre = juego.nombre,
-                    descripcion = juego.descripcion,
-                    genero = juego.genero,
-                    developer = null,
-                    fechaLanzamiento = null,
-                    platform = null,
-                    imagen = juego.imagen
-                )
+            items(favoritos) { juegoEntity ->
+                // MAPEO A OBJETO DTO: Se utiliza la función de extensión `aApi()` para incluir
+                // desarrollador, fecha de lanzamiento y plataforma al navegar hacia la pantalla de detalle.
+                val juegoApi = juegoEntity.aApi()
 
                 Card(
                     modifier = Modifier
@@ -77,10 +75,10 @@ fun PantallaFavoritos(
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        // Imagen persistida
+                        // Imagen persistida mediante Coil
                         AsyncImage(
-                            model = juego.imagen,
-                            contentDescription = "Imagen de ${juego.nombre}",
+                            model = juegoEntity.imagen,
+                            contentDescription = "Imagen de ${juegoEntity.nombre}",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -96,11 +94,11 @@ fun PantallaFavoritos(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = juego.nombre,
+                                    text = juegoEntity.nombre,
                                     style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
-                                    text = juego.genero ?: "Sin género",
+                                    text = juegoEntity.genero.ifEmpty { "Sin género" },
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }

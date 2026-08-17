@@ -57,20 +57,14 @@ dependencies {
     // Coil (Carga de imágenes)
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // 1. ROOM (Persistencia Local de Juegos Favoritos)
+    // 1. ROOM (Persistencia Local)
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     add("ksp", "androidx.room:room-compiler:$roomVersion")
 
-    // 2. DATASTORE (Preferencias: Modo Oscuro, Usuario, Foto)
+    // 2. DATASTORE (Preferencias)
     implementation("androidx.datastore:datastore-preferences:1.1.2")
-
-    // 3. CÁMARA Y GPS (Hardware y Permisos)
-    implementation("androidx.camera:camera-camera2:1.4.1")
-    implementation("androidx.camera:camera-lifecycle:1.4.1")
-    implementation("androidx.camera:camera-view:1.4.1")
-    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // Pruebas
     testImplementation(libs.junit)
