@@ -95,4 +95,5 @@ A continuación, se incluyen capturas de las principales pantallas y funcionalid
 <img width="720" height="1600" alt="WhatsApp Image 2026-08-17 at 19 43 58" src="https://github.com/user-attachments/assets/12700ad1-7411-408c-8010-a8296fced459" />
 
 **Captura 8: Diagrama de la Arquitectura**
-<img width="811" height="1350" alt="WhatsApp Image 2026-08-18 at 19 27 02" src="https://github.com/user-attachments/assets/27b6cdee-6112-4cb3-a959-b1f869b8b7fd" />
+<img width="2637" height="4305" alt="USUARIO Interaction Flow in-2026-08-19-163315" src="https://github.com/user-attachments/assets/f7712f9d-6f46-4470-92ab-163b3716f189" />
+
