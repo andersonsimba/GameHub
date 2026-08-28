@@ -6,21 +6,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [
-        VideojuegoEntity::class,
-        ResenaEntity::class
-    ],
+    entities = [VideojuegoEntity::class, ResenaEntity::class],
     version = 3,
     exportSchema = false
 )
+//Creacion base de datos
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun videojuegoDao(): VideojuegoDao
-
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -30,7 +25,6 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     .fallbackToDestructiveMigration()
                     .build()
-
                 INSTANCE = instance
                 instance
             }

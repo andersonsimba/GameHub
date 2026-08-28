@@ -24,7 +24,7 @@ data class VideojuegoApi(
     @SerializedName("thumbnail")
     val imagen: String?
 ) {
-    // Genera una calificación consistente basada en el ID (entre 3.5 y 5.0 ⭐)
+    // Genera una calificación  (entre 1 - 5 )
     val calificacion: String
         get() {
             val puntuacion = 3.5 + (id % 16) * 0.1

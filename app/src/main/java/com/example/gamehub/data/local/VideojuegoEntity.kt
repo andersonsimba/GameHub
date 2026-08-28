@@ -16,8 +16,7 @@ data class VideojuegoEntity(
     val descripcion: String,
     val genero: String,
     val imagen: String,
-    // CAMPOS ADICIONALES: Aseguran que la información completa esté disponible al abrir desde favoritos
     val developer: String? = null,
     val fechaLanzamiento: String? = null,
-    val platform: String? = null
+    val platform: String? = null,
 )

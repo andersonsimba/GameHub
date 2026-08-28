@@ -11,9 +11,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -29,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.gamehub.data.network.VideojuegoApi
@@ -87,14 +94,51 @@ fun PantallaBusqueda(
             }
 
             is EstadoUiVideojuegos.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "Error al obtener datos para búsqueda: ${estado.mensaje}",
-                        color = MaterialTheme.colorScheme.error
+                    Icon(
+                        imageVector = if (estado.esErrorConexion) Icons.Default.WifiOff else Icons.Default.ErrorOutline,
+                        contentDescription = if (estado.esErrorConexion) "Sin conexión" else "Error",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(64.dp)
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = if (estado.esErrorConexion) "¡Sin conexión a internet!" else "Error al cargar la búsqueda",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = estado.mensaje,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Button(
+                        onClick = { viewModel.cargarVideojuegos() }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Reintentar",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(text = "Reintentar")
+                    }
                 }
             }
 

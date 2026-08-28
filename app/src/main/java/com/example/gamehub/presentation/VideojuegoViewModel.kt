@@ -16,11 +16,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+import java.io.IOException
+import retrofit2.HttpException
+
 // Representa los posibles estados de la interfaz al cargar videojuegos.
 sealed interface EstadoUiVideojuegos {
     object Cargando : EstadoUiVideojuegos
     data class Exito(val juegos: List<VideojuegoApi>) : EstadoUiVideojuegos
-    data class Error(val mensaje: String) : EstadoUiVideojuegos
+    data class Error(
+        val mensaje: String,
+        val esErrorConexion: Boolean = false
+    ) : EstadoUiVideojuegos
 }
 
 class VideojuegoViewModel(
@@ -96,10 +102,23 @@ class VideojuegoViewModel(
             try {
                 val respuestaApi = repository.obtenerVideojuegos()
                 estadoUi = EstadoUiVideojuegos.Exito(respuestaApi)
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                // Error de conectividad: sin internet, timeout o host no disponible
                 estadoUi = EstadoUiVideojuegos.Error(
-                    e.localizedMessage
-                        ?: "Ocurrió un error inesperado al conectar con el servidor"
+                    mensaje = "No tienes conexión a internet. Para consultar el catálogo y las novedades de la API se requiere una conexión activa a internet. Por favor, verifica tu red Wi-Fi o datos móviles e intenta nuevamente.",
+                    esErrorConexion = true
+                )
+            } catch (e: HttpException) {
+                // Error devuelto por el servidor remoto
+                estadoUi = EstadoUiVideojuegos.Error(
+                    mensaje = "El servidor no respondió correctamente (Código de error: ${e.code()}). Por favor, intenta más tarde.",
+                    esErrorConexion = false
+                )
+            } catch (e: Exception) {
+                // Cualquier otro tipo de error no esperado
+                estadoUi = EstadoUiVideojuegos.Error(
+                    mensaje = "Ocurrió un error inesperado al conectar con el servidor. Por favor, intenta de nuevo.",
+                    esErrorConexion = false
                 )
             }
         }
