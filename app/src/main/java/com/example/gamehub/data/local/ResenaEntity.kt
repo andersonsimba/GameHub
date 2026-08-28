@@ -12,3 +12,4 @@ data class ResenaEntity(
     val calificacion: Int,
     val comentario: String
 )
+

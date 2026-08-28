@@ -1,7 +1,6 @@
 package com.example.gamehub.data.network
 
 import com.google.gson.annotations.SerializedName
-
 data class VideojuegoApi(
     val id: Int,
 
@@ -24,7 +23,6 @@ data class VideojuegoApi(
     @SerializedName("thumbnail")
     val imagen: String?
 ) {
-    // Genera una calificación  (entre 1 - 5 )
     val calificacion: String
         get() {
             val puntuacion = 3.5 + (id % 16) * 0.1
